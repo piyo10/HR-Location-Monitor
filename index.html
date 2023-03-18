@@ -60,7 +60,6 @@
         speed = snapshot.child('sp').val();
         date = snapshot.child('date').val();
         document.getElementById("firebase_date").textContent = date;
-        draw();
       });
 
       function signOut() {
@@ -72,7 +71,6 @@
           document.getElementById("firebase_status_id").textContent = "Sign OUT error";
         });
       }
-      // e6HKR7Lv@gmail.com Gp95wgDa
     </script>
       <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
       integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
@@ -108,25 +106,29 @@
 
   </body>
 
-  <div id="view_map" style="height: 350px;"></div>
+  <div id="view_map" style="width: 400px; height: 350px;"></div>
     <script type="text/javascript">
-        function draw() {
-            var map = L.map('view_map').setView([lat, lon], 12);
+      var map;
+      map = L.map('view_map').setView([lat, lon], 12);
             var markersLayer = L.layerGroup().addTo(map);
             L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
                 maxZoom: 18,
                 attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, '
             }).addTo(map);
 
-            var popup = L.popup();
-            L.marker([lat, lon]).addTo(map).on('click', function (e) {
+      var popup = L.popup();
+      firebase.database().ref(user_path).on('value', function(snapshot) {
+        lat = parseFloat(snapshot.child('lat').val());
+        lon = parseFloat(snapshot.child('lon').val());
+        L.marker([lat, lon]).addTo(map).on('click', function (e) {
                 popup
               .setLatLng(e.latlng)
               .setContent("Speed "+ speed + "m/s")
               .openOn(map);
-            });
-        }
-        draw();
+        });
+        map.setView([lat, lon], 12);
+      });
+        
   </script>
 
 </html>
