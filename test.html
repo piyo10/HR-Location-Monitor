@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv='content-type' content='text/html; charset=UTF-8'>
+    <meta name='viewport' content='width=210, initial-scale=1.3, user-scalable=yes'>
+    <title>Firebase Server-Sent Events Test</title>
+ 
+    <!-- by Firebase Project Overview (Use Web) -->
+    <script src="https://www.gstatic.com/firebasejs/5.4.2/firebase.js"></script>
+    <script>
+      // Initialize Firebase
+      var config = {
+        apiKey: "AIzaSyBV-yPMEyt1FIdJDS4jI6JC8MVFl2NYnfY",
+        authDomain: "tmpr-5f10f.firebaseapp.com",
+        databaseURL: "https://tmpr-5f10f-default-rtdb.firebaseio.com",
+        projectId: "tmpr-5f10f",
+        storageBucket: "tmpr-5f10f.appspot.com",
+        messagingSenderId: "869127386133",
+        appId: "1:869127386133:web:b2f5073fd965f504b24a1c",
+        measurementId: "G-VRXX4ZMX66"
+      };
+      firebase.initializeApp(config);
+    </script>
+    <!-- -------------------------------- -->
+ 
+    <script type="text/javascript">
+      var user_path = "hr";
+      var lat = 36;
+      var lon = 137;
+      var hr = "";
+      var speed = "";
+      var date = "";
+ 
+      function signIn() {
+        let mail_str = document.getElementById("mail_txt_id").value;
+        let pass_str = document.getElementById("pass_txt_id").value;
+ 
+        document.getElementById("firebase_status_id").textContent = "Sign In wait...";
+ 
+        firebase.auth().signInWithEmailAndPassword(mail_str, pass_str).then(function() {
+          document.getElementById("firebase_status_id").textContent = "Sign In Success!";
+          //2秒待ってからページを再ロードすることによって、ストリーミング受信するようになる。
+          setTimeout("location.reload()",2000);
+        }).catch(function(error) {
+          let errorCode = error.code;
+          let errorMessage = error.message;
+          document.getElementById("firebase_status_id").textContent = errorMessage;
+          setTimeout("location.reload()",5000);
+        });
+      }
+ 
+      //text データの読み込み
+      firebase.database().ref(user_path).on('value', function(snapshot) {
+        hr=snapshot.child('hr').val()
+        document.getElementById("firebase_hr").textContent = hr;
+        document.getElementById("firebase_status_id").textContent = "data received";
+
+        lat = parseFloat(snapshot.child('lat').val());
+        lon = parseFloat(snapshot.child('lon').val());
+        speed = snapshot.child('sp').val();
+        date = snapshot.child('date').val();
+        document.getElementById("firebase_date").textContent = date;
+        draw();
+      });
+
+      function signOut() {
+        firebase.auth().signOut().then(function() {
+          // Sign-out successful.
+          document.getElementById("firebase_status_id").textContent = "Sign OUT";
+          setTimeout("location.reload()",2000);
+        }).catch(function(error) {
+          document.getElementById("firebase_status_id").textContent = "Sign OUT error";
+        });
+      }
+      // e6HKR7Lv@gmail.com Gp95wgDa
+    </script>
+      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+      integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+      crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+      integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+      crossorigin=""></script>
+  </head>
+ 
+  <body></body>
+    Firebase Realtime Database Test
+    <br>
+    <p style="text-align:start; border-style:double; border-color:#FFF; padding:5px;">
+        mail:<br>
+        <input type="textbox" id="mail_txt_id" value=''><br>
+        password:<br>
+        <input type="password" id="pass_txt_id" value=''><br>
+        <input type="button" value="sign in" onClick="signIn()">
+        <input type="button" value="sign out" onclick="signOut();">
+      </p>
+    <br>
+    Connection Status:
+    <span id="firebase_status_id">
+      Cannot Connection.
+    </span>
+    <p>
+        Data Update : <span id="firebase_date">???</span>
+    </p>
+    <p>
+        Heart Rate : <span id="firebase_hr">???</span>
+    </p>
+
+
+  </body>
+
+  <div id="view_map" style="height: 350px;"></div>
+    <script type="text/javascript">
+        function draw() {
+            var map = L.map('view_map').setView([lat, lon], 12);
+            var markersLayer = L.layerGroup().addTo(map);
+            L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+                maxZoom: 18,
+                attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, '
+            }).addTo(map);
+
+            var popup = L.popup();
+            L.marker([lat, lon]).addTo(map).on('click', function (e) {
+                popup
+              .setLatLng(e.latlng)
+              .setContent("Speed "+ speed + "m/s")
+              .openOn(map);
+            });
+        }
+        draw();
+  </script>
+
+</html>
